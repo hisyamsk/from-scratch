@@ -1,0 +1,27 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+
+BreakBeforeBraces: Attach  # Same line for functions, ifs, loops, etc.
+
+# Spaces
+SpaceBeforeParens: ControlStatements  # space before `if (` but not before function calls
+SpaceInEmptyParentheses: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceAfterCStyleCast: true
+SpaceAfterTemplateKeyword: true
+SpacesBeforeTrailingComments: 1
+
+# Column limit for line wrapping
+ColumnLimit: 100
+
+# Structs and enums formatting
+AlignAfterOpenBracket: Align
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: false
+
+# Sorting and includes
+SortIncludes: true
+IncludeBlocks: Preserve

@@ -1,0 +1,16 @@
+# Build artifacts
+*.o
+test
+demo
+compile_commands.json
+
+# Cache and indexing
+.cache/
+tags
+*.log
+
+# Editor temp files
+*.swp
+*.swo
+*.tmp
+*~
