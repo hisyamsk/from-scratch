@@ -1,6 +1,5 @@
 # Build artifacts
 *.o
-test
 demo
 compile_commands.json
 
