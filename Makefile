@@ -12,7 +12,7 @@ SRCS := main.c test/test.c $(wildcard */src/*.c) $(wildcard */test/*.c)
 OBJS := $(SRCS:.c=.o)
 
 # binary name
-BIN := run_tests
+BIN := tests
 
 .PHONY: all build run clean
 

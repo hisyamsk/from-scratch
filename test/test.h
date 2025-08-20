@@ -9,8 +9,11 @@ typedef struct {
     test_func func;
 } test_entry;
 
-void register_test(const char *file, const char *name, test_func t);
-void run_all_tests(const char *filter);
+void run_tests(int argc, char **argv);
+void register_test(const char *file, const char *name, test_func func);
+
+extern int test_passed;
+extern int test_failed;
 
 #define TEST(name)                                                                                 \
     static void name(void);                                                                        \
@@ -23,9 +26,11 @@ void run_all_tests(const char *filter);
     do {                                                                                           \
         if (cond) {                                                                                \
             printf("✅ Passed: %s\n", msg);                                                        \
+            test_passed++;                                                                         \
         } else {                                                                                   \
-            printf("❌ Failed: %s\n", msg);                                                        \
+            printf("❌ Failed: %s. Expected: true, Got: false\n", msg);                            \
+            test_failed++;                                                                         \
         }                                                                                          \
-    } while (0)
+    } while (0);
 
 #endif

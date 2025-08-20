@@ -2,7 +2,7 @@
 *.o
 demo
 compile_commands.json
-run_tests
+tests*
 
 # Cache and indexing
 .cache/
