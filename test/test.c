@@ -1,4 +1,5 @@
 #include "test.h"
+#include <setjmp.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -9,6 +10,9 @@ static int test_count = 0;
 
 int test_passed = 0;
 int test_failed = 0;
+
+jmp_buf test_env;
+static int current_failed = 0;
 
 void register_test(const char *file, const char *name, test_func func) {
     if (test_count < MAX_TESTS) {
@@ -42,11 +46,24 @@ void run_tests(int argc, char **argv) {
             continue;
 
         printf("[RUNNING] %s - %s\n", tests[i].file, tests[i].name);
-        tests[i].func();
+        current_failed = 0;
+        if (setjmp(test_env) == 0) {
+            tests[i].func();
+
+            if (!current_failed)
+                test_passed++;
+        } else {
+            test_failed++;
+        }
         run++;
     }
 
     printf("\n");
     printf("[==========] 📋 Done. Ran %d/%d tests. Passed: %d. Failed: %d\n", run, test_count,
            test_passed, test_failed);
+}
+
+void fail_test() {
+    current_failed = 1;
+    longjmp(test_env, 1);
 }
