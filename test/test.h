@@ -45,7 +45,7 @@ void fail_test(void);
         if ((ptr) != NULL) {                                                                       \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: !NULL. Got: NULL\n");                                 \
+            printf("❌ Failed: %s. Expected: !NULL. Got: NULL\n", msg);                            \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
@@ -55,7 +55,7 @@ void fail_test(void);
         if ((ptr) == NULL) {                                                                       \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: NULL. Got: !NULL\n");                                 \
+            printf("❌ Failed: %s. Expected: NULL. Got: !NULL\n", msg);                            \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
@@ -65,7 +65,7 @@ void fail_test(void);
         if ((a) == (b)) {                                                                          \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n");                            \
+            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n", msg);                       \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
@@ -75,7 +75,7 @@ void fail_test(void);
         if ((a) != (b)) {                                                                          \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: Not Equal. Got: Equal\n");                            \
+            printf("❌ Failed: %s. Expected: Not Equal. Got: Equal\n", msg);                       \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
@@ -87,7 +87,7 @@ void fail_test(void);
         if (_pa == _pb) {                                                                          \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n");                            \
+            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n", msg);                       \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
@@ -97,7 +97,7 @@ void fail_test(void);
         if (memcmp((p1), (p2), (size)) == 0) {                                                     \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n");                            \
+            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n", msg);                       \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
@@ -107,7 +107,7 @@ void fail_test(void);
         if (strncmp((s1), (s2), (size)) == 0) {                                                    \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n");                            \
+            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n", msg);                       \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
