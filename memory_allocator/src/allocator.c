@@ -113,7 +113,7 @@ void *calloc_mem(size_t nmemb, size_t size) {
         return NULL;
 
     size_t total = nmemb * size;
-    void *mem = malloc(total);
+    void *mem = alloc_mem(total);
     if (mem != NULL)
         memset(mem, 0, total);
 
