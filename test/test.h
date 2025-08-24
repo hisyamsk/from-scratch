@@ -1,6 +1,11 @@
 #ifndef TEST_H
 #define TEST_H
 
+#include <inttypes.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 typedef void (*test_func)(void);
 
 typedef struct {
@@ -45,7 +50,7 @@ void fail_test(void);
         if ((ptr) != NULL) {                                                                       \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: !NULL. Got: NULL\n", msg);                            \
+            printf("❌ Failed: %s. Expected: not NULL. Got: NULL\n", msg);                         \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
@@ -55,61 +60,207 @@ void fail_test(void);
         if ((ptr) == NULL) {                                                                       \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: NULL. Got: !NULL\n", msg);                            \
+            printf("❌ Failed: %s. Expected: NULL. Got: %p\n", msg, (ptr));                        \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
 
-#define ASSERT_EQUAL(msg, a, b)                                                                    \
+#define ASSERT_INT_EQUAL(msg, expected, actual)                                                    \
     do {                                                                                           \
-        if ((a) == (b)) {                                                                          \
+        if ((expected) == (actual)) {                                                              \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n", msg);                       \
+            printf("❌ Failed: %s. Expected: %d. Got: %d\n", msg, (expected), (actual));           \
             fail_test();                                                                           \
         }                                                                                          \
-    } while (0);
+    } while (0)
 
-#define ASSERT_NOT_EQUAL(msg, a, b)                                                                \
+#define ASSERT_LONG_EQUAL(msg, expected, actual)                                                   \
     do {                                                                                           \
-        if ((a) != (b)) {                                                                          \
+        if ((expected) == (actual)) {                                                              \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: Not Equal. Got: Equal\n", msg);                       \
+            printf("❌ Failed: %s. Expected: %ld. Got: %ld\n", msg, (expected), (actual));         \
             fail_test();                                                                           \
         }                                                                                          \
-    } while (0);
+    } while (0)
 
-#define ASSERT_PTR_EQUAL(msg, a, b)                                                                \
+#define ASSERT_LLONG_EQUAL(msg, expected, actual)                                                  \
     do {                                                                                           \
-        void *_pa = (a);                                                                           \
-        void *_pb = (b);                                                                           \
+        if ((expected) == (actual)) {                                                              \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Expected: %lld. Got: %lld\n", msg, (expected), (actual));       \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_UINT_EQUAL(msg, expected, actual)                                                   \
+    do {                                                                                           \
+        if ((expected) == (actual)) {                                                              \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Expected: %u. Got: %u\n", msg, (expected), (actual));           \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_ULONG_EQUAL(msg, expected, actual)                                                  \
+    do {                                                                                           \
+        if ((expected) == (actual)) {                                                              \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Expected: %lu. Got: %lu\n", msg, (expected), (actual));         \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_UINTPTR_EQUAL(msg, expected, actual)                                                \
+    do {                                                                                           \
+        if ((expected) == (actual)) {                                                              \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Expected: %ju. Got: %ju\n", msg, (uintmax_t) (expected),        \
+                   (uintmax_t) (actual));                                                          \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_INT_NOT_EQUAL(msg, expected, actual)                                                \
+    do {                                                                                           \
+        if ((expected) != (actual)) {                                                              \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Both values were %d (unexpected equal)\n", msg, (expected));    \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_LONG_NOT_EQUAL(msg, expected, actual)                                               \
+    do {                                                                                           \
+        if ((expected) != (actual)) {                                                              \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Both values were %ld (unexpected equal)\n", msg, (expected));   \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_LLONG_NOT_EQUAL(msg, expected, actual)                                              \
+    do {                                                                                           \
+        if ((expected) != (actual)) {                                                              \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Both values were %lld (unexpected equal)\n", msg, (expected));  \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_UINT_NOT_EQUAL(msg, expected, actual)                                               \
+    do {                                                                                           \
+        if ((expected) != (actual)) {                                                              \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Both values were %u (unexpected equal)\n", msg, (expected));    \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_ULONG_NOT_EQUAL(msg, expected, actual)                                              \
+    do {                                                                                           \
+        if ((expected) != (actual)) {                                                              \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Both values were %lu (unexpected equal)\n", msg, (expected));   \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_UINTPTR_NOT_EQUAL(msg, expected, actual)                                            \
+    do {                                                                                           \
+        if ((expected) != (actual)) {                                                              \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Both values were %ju (unexpected equal)\n", msg,                \
+                   (uintmax_t) (expected));                                                        \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_PTR_EQUAL(msg, expected, actual)                                                    \
+    do {                                                                                           \
+        void *_pa = (expected);                                                                    \
+        void *_pb = (actual);                                                                      \
         if (_pa == _pb) {                                                                          \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n", msg);                       \
+            printf("❌ Failed: %s. Expected: %p. Got: %p\n", msg, pa, pb);                         \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
 
-#define ASSERT_MEM_EQUAL(msg, p1, p2, size)                                                        \
+#define ASSERT_PTR_NOT_EQUAL(msg, expected, actual)                                                \
     do {                                                                                           \
-        if (memcmp((p1), (p2), (size)) == 0) {                                                     \
+        void *_pa = (expected);                                                                    \
+        void *_pb = (actual);                                                                      \
+        if (_pa != _pb) {                                                                          \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n", msg);                       \
+            printf("❌ Failed: %s. Both pointers were \"%p\" (unexpected equal)\n", msg,           \
+                   (expected));                                                                    \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
 
-#define ASSERT_STR_EQUAL(msg, s1, s2, size)                                                        \
+#define ASSERT_MEM_EQUAL(msg, expected, actual, size)                                              \
     do {                                                                                           \
-        if (strncmp((s1), (s2), (size)) == 0) {                                                    \
+        if (memcmp((expected), (actual), (size)) == 0) {                                           \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: Equal. Got: Not Equal\n", msg);                       \
+            for (size_t i = 0; i < (size); i++) {                                                  \
+                if (((const unsigned char *) (expected))[i] !=                                     \
+                    ((const unsigned char *) (actual))[i]) {                                       \
+                    printf("❌ Failed: %s. Memory differs at byte %zu. Expected: 0x%02X, Got: "    \
+                           "0x%02X\n",                                                             \
+                           msg, i, ((const unsigned char *) (expected))[i],                        \
+                           ((const unsigned char *) (actual))[i]);                                 \
+                    break;                                                                         \
+                }                                                                                  \
+            }                                                                                      \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_MEM_NOT_EQUAL(msg, expected, actual, size)                                          \
+    do {                                                                                           \
+        if (memcmp((expected), (actual), (size)) != 0) {                                           \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Memory regions are identical (%zu bytes)\n", msg,               \
+                   (size_t) (size));                                                               \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_STR_EQUAL(msg, expected, actual, size)                                              \
+    do {                                                                                           \
+        if (strncmp((expected), (actual), (size)) == 0) {                                          \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Expected: %s. Got: %s\n", msg, expected, actual);               \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);
+
+#define ASSERT_STR_NOT_EQUAL(msg, expected, actual, size)                                          \
+    do {                                                                                           \
+        if (strncmp((expected), (actual), (size)) != 0) {                                          \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Both strings were \"%s\" (unexpected equal)\n", msg,            \
+                   (expected));                                                                    \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
 
 #endif
