@@ -40,7 +40,7 @@ static int matches_filter(const test_entry *t, int argc, char **argv) {
 void run_tests(int argc, char **argv) {
     int run = 0;
 
-    printf("[==========] 🔍 Discovered %d tests.\n", test_count);
+    printf("[==========] 🔍 Discovered %d tests.\n\n", test_count);
     for (int i = 0; i < test_count; i++) {
         if (!matches_filter(&tests[i], argc, argv))
             continue;
