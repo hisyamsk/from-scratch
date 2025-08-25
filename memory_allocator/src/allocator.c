@@ -31,7 +31,7 @@ void free_mem(void *ptr) {
         return;
 
     if ((char *) ptr <= heap_start || (char *) ptr >= heap_end) {
-        fprintf(stderr, "free_mem: invalid pointer %p\n", ptr);
+        fprintf(stderr, "free_mem: invalid pointer %p (out of heap bounds)\n", ptr);
         return;
     }
 
@@ -75,7 +75,7 @@ void *more_mem(size_t n_units) {
     Header *new_mem = (Header *) p;
     new_mem->s.size = n_units;
     free_mem((void *) (new_mem + 1));
-    return new_mem;
+    return freep;
 }
 
 void *alloc_mem(size_t n_bytes) {
@@ -101,8 +101,8 @@ void *alloc_mem(size_t n_bytes) {
             return (void *) (curr + 1);
         }
 
-        if (prev == curr->s.next) {
-            if (more_mem(n_units) == (void *) -1)
+        if (curr == freep) {
+            if (more_mem(n_units) == NULL)
                 return NULL;
         }
     }
