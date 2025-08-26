@@ -194,7 +194,7 @@ void fail_test(void);
         if (_pa == _pb) {                                                                          \
             printf("✅ Passed: %s\n", msg);                                                        \
         } else {                                                                                   \
-            printf("❌ Failed: %s. Expected: %p. Got: %p\n", msg, pa, pb);                         \
+            printf("❌ Failed: %s. Expected: %p. Got: %p\n", msg, (expected), (actual));           \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0);

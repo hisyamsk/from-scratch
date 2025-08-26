@@ -21,7 +21,7 @@ void register_test(const char *file, const char *name, test_func func) {
         tests[test_count].func = func;
         test_count++;
     } else {
-        fprintf(stderr, "Too many tests registered!\n");
+        fprintf(stderr, "register_test: Too many tests registered!\n");
     }
 }
 
