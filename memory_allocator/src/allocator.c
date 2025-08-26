@@ -8,6 +8,9 @@
 #include <unistd.h>
 
 #define MIN_ALLOC 1024
+#define MAGIC_ALLOCATED 0xDEADBEEF
+#define MAGIC_FREED 0xABADCAFE
+#define POISON_BYTE 0xAA
 
 typedef long Align;
 
@@ -15,6 +18,7 @@ union header {
     struct {
         union header *next;
         size_t size;
+        uint32_t magic;
     } s;
     Align x;
 };
@@ -29,15 +33,28 @@ static char *heap_end = NULL;
 void free_mem(void *ptr) {
     if (!ptr)
         return;
-
     if ((char *) ptr <= heap_start || (char *) ptr >= heap_end) {
         fprintf(stderr, "free_mem: invalid pointer %p (out of heap bounds)\n", ptr);
         return;
     }
 
     Header *ptr_header = (Header *) ptr - 1;
-    Header *curr = freep;
 
+    if (ptr_header->s.magic == MAGIC_FREED) {
+        fprintf(stderr, "free_mem: double free detected at %p\n", ptr);
+        return;
+    }
+    if (ptr_header->s.magic != MAGIC_ALLOCATED) {
+        fprintf(stderr, "free_mem: invalid pointer %p (heap corruption)\n", ptr);
+        return;
+    }
+
+    size_t user_data = (ptr_header->s.size - 1) * sizeof(Header);
+    memset(ptr, POISON_BYTE, user_data);
+
+    ptr_header->s.magic = MAGIC_FREED;
+
+    Header *curr = freep;
     for (; !(ptr_header > curr && ptr_header < curr->s.next); curr = curr->s.next) {
         if (curr >= curr->s.next && (ptr_header > curr || ptr_header < curr->s.next))
             break;
@@ -60,7 +77,7 @@ void free_mem(void *ptr) {
     freep = curr;
 }
 
-void *more_mem(size_t n_units) {
+static void *more_mem(size_t n_units) {
     if (heap_start == NULL)
         heap_start = (char *) sbrk(0);
     if (n_units < MIN_ALLOC)
@@ -74,6 +91,7 @@ void *more_mem(size_t n_units) {
 
     Header *new_mem = (Header *) p;
     new_mem->s.size = n_units;
+    new_mem->s.magic = MAGIC_ALLOCATED;
     free_mem((void *) (new_mem + 1));
     return freep;
 }
@@ -98,6 +116,7 @@ void *alloc_mem(size_t n_bytes) {
             }
 
             freep = prev;
+            curr->s.magic = MAGIC_ALLOCATED;
             return (void *) (curr + 1);
         }
 
