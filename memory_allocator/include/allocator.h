@@ -1,5 +1,5 @@
-#ifndef MANAGER_H
-#define MANAGER_H
+#ifndef ALLOCATOR_H
+#define ALLOCATOR_H
 
 #include <stddef.h>
 
