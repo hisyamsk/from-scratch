@@ -1,5 +1,8 @@
 #include "allocator.h"
 #include "test.h"
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 TEST(alloc_mem_returns_non_null) {
     int *arr = alloc_mem(10 * sizeof(int));
@@ -37,4 +40,87 @@ TEST(alloc_mem_alignment) {
     void *ptr = alloc_mem(1);
     ASSERT_NOT_NULL("ptr should not be null", ptr);
     ASSERT_UINTPTR_EQUAL("ptr should be aligned", 0, (uintptr_t) ptr % sizeof(void *));
+}
+
+TEST(free_mem_success) {
+    char *p = alloc_mem(32);
+    ASSERT_NOT_NULL("p should not be null", p);
+
+    int s, r;
+    capture_stderr_start(&s, &r);
+
+    free_mem(p);
+
+    char *out = capture_stderr_end(s, r);
+    ASSERT_TRUE("free_mem should not return any error", strlen(out) == 0);
+    free(out);
+}
+
+TEST(free_stack_address_logs_error) {
+    int s, r;
+    capture_stderr_start(&s, &r);
+
+    char a = 'a';
+    free_mem(&a);
+
+    char *out = capture_stderr_end(s, r);
+    ASSERT_STR_MATCH("free_mem for stack address should log error", out, "out of heap bounds");
+    free(out);
+}
+
+TEST(free_mem_offset_pointer_logs_error) {
+    int s, r;
+    capture_stderr_start(&s, &r);
+
+    char *p = alloc_mem(32);
+    ASSERT_NOT_NULL("p should not be null", p);
+
+    free_mem(p + 3);
+
+    char *out = capture_stderr_end(s, r);
+    ASSERT_STR_MATCH("free_mem for offset pointer should log error", out, "heap corruption");
+    free(out);
+}
+
+TEST(free_mem_unallocated_heap_logs_error) {
+    int s, r;
+    capture_stderr_start(&s, &r);
+
+    char *p = alloc_mem(32);
+    ASSERT_NOT_NULL("p should not be null", p);
+
+    char *pp = (char *) sbrk(0);
+
+    free_mem(pp - 10);
+
+    char *out = capture_stderr_end(s, r);
+    ASSERT_STR_MATCH("free_mem for unallocated heap address log error", out, "heap corruption");
+    free(out);
+}
+
+TEST(double_free_logs_error) {
+    char *p = alloc_mem(32);
+    ASSERT_NOT_NULL("p should not be null", p);
+
+    int s, r;
+    capture_stderr_start(&s, &r);
+
+    free_mem(p);
+    free_mem(p);
+
+    char *out = capture_stderr_end(s, r);
+    ASSERT_STR_MATCH("double free_mem should log error", out, "double free");
+    free(out);
+}
+
+TEST(use_after_free) {
+    char *p = alloc_mem(10);
+    ASSERT_NOT_NULL("p should not be null", p);
+    strcpy(p, "ABCDEFGHIJ");
+
+    free_mem(p);
+    char expected[10];
+    memset(expected, 0xAA, 10);
+
+    ASSERT_MEM_EQUAL("memory should be filled with poison for UAF", expected, p, 10);
 }

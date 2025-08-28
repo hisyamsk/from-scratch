@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 typedef void (*test_func)(void);
@@ -17,6 +18,9 @@ typedef struct {
 void run_tests(int argc, char **argv);
 void register_test(const char *file, const char *name, test_func func);
 void fail_test(void);
+
+void capture_stderr_start(int *saved_stderr_fd, int *read_fd);
+char *capture_stderr_end(int saved_stderr_fd, int read_fd);
 
 #define TEST(name)                                                                                 \
     static void name(void);                                                                        \
@@ -259,6 +263,16 @@ void fail_test(void);
         } else {                                                                                   \
             printf("❌ Failed: %s. Both strings were \"%s\" (unexpected equal)\n", msg,            \
                    (expected));                                                                    \
+            fail_test();                                                                           \
+        }                                                                                          \
+    } while (0)
+
+#define ASSERT_STR_MATCH(msg, haystack, needle)                                                    \
+    do {                                                                                           \
+        if (strstr(haystack, needle) != NULL) {                                                    \
+            printf("✅ Passed: %s\n", msg);                                                        \
+        } else {                                                                                   \
+            printf("❌ Failed: %s. Pattern %s not found in %s\n", msg, needle, haystack);          \
             fail_test();                                                                           \
         }                                                                                          \
     } while (0)
