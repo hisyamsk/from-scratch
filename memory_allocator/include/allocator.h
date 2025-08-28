@@ -1,6 +1,7 @@
 #ifndef ALLOCATOR_H
 #define ALLOCATOR_H
 
+#define _DEFAULT_SOURCE
 #include <stddef.h>
 
 void *alloc_mem(size_t size);

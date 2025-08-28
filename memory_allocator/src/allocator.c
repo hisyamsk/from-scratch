@@ -1,4 +1,3 @@
-#define _DEFAULT_SOURCE
 #include "allocator.h"
 #include <stddef.h>
 #include <stdint.h>
