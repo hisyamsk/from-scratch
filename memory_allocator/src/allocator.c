@@ -152,10 +152,6 @@ void *calloc_mem(size_t nmemb, size_t size) {
 void *realloc_mem(void *ptr, size_t size) {
     if (!ptr)
         return NULL;
-    if (size == 0) {
-        free_mem(ptr);
-        return NULL;
-    }
     if (!validate_ptr(ptr, "realloc_mem"))
         return NULL;
 

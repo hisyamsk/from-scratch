@@ -148,12 +148,12 @@ TEST(realloc_zero_size) {
     ASSERT_NOT_NULL("p should not be null", p);
 
     char *p2 = realloc_mem(p, 0);
-    ASSERT_NULL("p2 should be null", p2);
+    ASSERT_NOT_NULL("p2 should not be null", p2);
 
     char expected[32];
     memset(expected, 0xAA, 32);
 
-    ASSERT_MEM_EQUAL("realloc_mem should free and posion memory", expected, p, 32);
+    ASSERT_MEM_EQUAL("pointer passed to realloc_mem should have posion memory", expected, p, 32);
 }
 
 TEST(realloc_mem_stack_address_logs_error) {
