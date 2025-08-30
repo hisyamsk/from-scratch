@@ -29,25 +29,36 @@ static Header *freep = NULL;
 static char *heap_start = NULL;
 static char *heap_end = NULL;
 
-void free_mem(void *ptr) {
+static int validate_ptr(void *ptr, const char *funcname) {
     if (!ptr)
-        return;
-    if ((char *) ptr <= heap_start || (char *) ptr >= heap_end) {
-        fprintf(stderr, "free_mem: invalid pointer %p (out of heap bounds)\n", ptr);
-        return;
+        return 0;
+
+    if ((char *) ptr <= (char *) heap_start || (char *) ptr >= (char *) heap_end) {
+        fprintf(stderr, "%s: invalid pointer %p (out of heap bounds)\n", funcname, ptr);
+        return 0;
     }
 
     Header *ptr_header = (Header *) ptr - 1;
 
     if (ptr_header->s.magic == MAGIC_FREED) {
-        fprintf(stderr, "free_mem: double free detected at %p\n", ptr);
-        return;
+        fprintf(stderr, "%s: double free detected at %p\n", funcname, ptr);
+        return 0;
     }
     if (ptr_header->s.magic != MAGIC_ALLOCATED) {
-        fprintf(stderr, "free_mem: invalid pointer %p (heap corruption)\n", ptr);
-        return;
+        fprintf(stderr, "%s: invalid pointer %p (heap corruption)\n", funcname, ptr);
+        return 0;
     }
 
+    return 1;
+}
+
+void free_mem(void *ptr) {
+    if (!ptr)
+        return;
+    if (!validate_ptr(ptr, "free_mem"))
+        return;
+
+    Header *ptr_header = (Header *) ptr - 1;
     size_t user_data = (ptr_header->s.size - 1) * sizeof(Header);
     memset(ptr, POISON_BYTE, user_data);
 
@@ -136,4 +147,21 @@ void *calloc_mem(size_t nmemb, size_t size) {
         memset(mem, 0, total);
 
     return mem;
+}
+
+void *realloc_mem(void *ptr, size_t size) {
+    if (!ptr)
+        return NULL;
+    if (size == 0) {
+        free_mem(ptr);
+        return NULL;
+    }
+    if (!validate_ptr(ptr, "realloc_mem"))
+        return NULL;
+
+    void *new_mem = alloc_mem(size);
+    memcpy(new_mem, ptr, size);
+    free_mem(ptr);
+
+    return new_mem;
 }
