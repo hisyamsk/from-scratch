@@ -4,7 +4,6 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 typedef void (*test_func)(void);
@@ -13,7 +12,7 @@ typedef struct {
     const char *file;
     const char *name;
     test_func func;
-} test_entry;
+} test_entry_t;
 
 void run_tests(int argc, char **argv);
 void register_test(const char *file, const char *name, test_func func);

@@ -22,10 +22,10 @@ union header {
     Align x;
 };
 
-typedef union header Header;
+typedef union header header_t;
 
-static Header base;
-static Header *freep = NULL;
+static header_t base;
+static header_t *freep = NULL;
 static char *heap_start = NULL;
 static char *heap_end = NULL;
 
@@ -38,7 +38,7 @@ static int validate_ptr(void *ptr, const char *funcname) {
         return 0;
     }
 
-    Header *ptr_header = (Header *) ptr - 1;
+    header_t *ptr_header = (header_t *) ptr - 1;
 
     if (ptr_header->s.magic == MAGIC_FREED) {
         fprintf(stderr, "%s: double free detected at %p\n", funcname, ptr);
@@ -58,13 +58,13 @@ void free_mem(void *ptr) {
     if (!validate_ptr(ptr, "free_mem"))
         return;
 
-    Header *ptr_header = (Header *) ptr - 1;
-    size_t user_data = (ptr_header->s.size - 1) * sizeof(Header);
+    header_t *ptr_header = (header_t *) ptr - 1;
+    size_t user_data = (ptr_header->s.size - 1) * sizeof(header_t);
     memset(ptr, POISON_BYTE, user_data);
 
     ptr_header->s.magic = MAGIC_FREED;
 
-    Header *curr = freep;
+    header_t *curr = freep;
     for (; !(ptr_header > curr && ptr_header < curr->s.next); curr = curr->s.next) {
         if (curr >= curr->s.next && (ptr_header > curr || ptr_header < curr->s.next))
             break;
@@ -93,13 +93,13 @@ static void *more_mem(size_t n_units) {
     if (n_units < MIN_ALLOC)
         n_units = MIN_ALLOC;
 
-    void *p = sbrk(n_units * sizeof(Header));
+    void *p = sbrk(n_units * sizeof(header_t));
     if (p == (void *) -1)
         return NULL;
 
     heap_end = (char *) sbrk(0);
 
-    Header *new_mem = (Header *) p;
+    header_t *new_mem = (header_t *) p;
     new_mem->s.size = n_units;
     new_mem->s.magic = MAGIC_ALLOCATED;
     free_mem((void *) (new_mem + 1));
@@ -107,15 +107,15 @@ static void *more_mem(size_t n_units) {
 }
 
 void *alloc_mem(size_t n_bytes) {
-    size_t n_units = (n_bytes + sizeof(Header) - 1) / sizeof(Header) + 1;
+    size_t n_units = (n_bytes + sizeof(header_t) - 1) / sizeof(header_t) + 1;
 
     if (!freep) {
         base.s.next = freep = &base;
         base.s.size = 0;
     }
 
-    Header *prev = freep;
-    for (Header *curr = prev->s.next;; prev = curr, curr = curr->s.next) {
+    header_t *prev = freep;
+    for (header_t *curr = prev->s.next;; prev = curr, curr = curr->s.next) {
         if (curr->s.size >= n_units) {
             if (curr->s.size == n_units) {
                 prev->s.next = curr->s.next;

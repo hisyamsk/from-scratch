@@ -3,13 +3,12 @@
 #include <fcntl.h>
 #include <setjmp.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #define MAX_TESTS 1024
 
-static test_entry tests[MAX_TESTS];
+static test_entry_t tests[MAX_TESTS];
 static int test_count = 0;
 
 int test_passed = 0;
@@ -29,7 +28,7 @@ void register_test(const char *file, const char *name, test_func func) {
     }
 }
 
-static int matches_filter(const test_entry *t, int argc, char **argv) {
+static int matches_filter(const test_entry_t *t, int argc, char **argv) {
     if (argc <= 1)
         return 1;
     for (int i = 1; i < argc; i++) {
