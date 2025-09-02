@@ -20,6 +20,9 @@ typedef struct {
     void *(*dup_val)(const void *val);
     void *(*free_val)(void *val);
 
+    void *(*dup_key)(const void *val);
+    void *(*free_key)(void *key);
+
     unsigned int seed;
     double load_factor;
     size_t initial_capacity;
