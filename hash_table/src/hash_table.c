@@ -72,3 +72,19 @@ static int bucket_insert(ht_bucket_t *b, unsigned hash, void *key, size_t key_le
     b->len++;
     return HT_OK;
 }
+
+static int bucket_delete(ht_bucket_t *b, unsigned hash, void *key, size_t key_len,
+                         const ht_config_t *config) {
+    int idx = bucket_find(b, hash, key, key_len, config);
+    if (idx < 0)
+        return HT_ENOTFOUND;
+
+    if (config->free_val)
+        config->free_val(b->items[idx].val);
+    if (config->free_key)
+        config->free_val(b->items[idx].val);
+
+    b->items[idx] = b->items[b->len - 1];
+    b->len--;
+    return HT_OK;
+}
