@@ -66,10 +66,10 @@ static int bucket_insert(ht_bucket_t *bucket, unsigned hash, void *key, size_t k
     if (err != HT_OK)
         return err;
 
-    bucket->items[idx].hash = hash;
-    bucket->items[idx].key = key;
-    bucket->items[idx].key_len = key_len;
-    bucket->items[idx].val = val;
+    bucket->items[bucket->len].hash = hash;
+    bucket->items[bucket->len].key = key;
+    bucket->items[bucket->len].key_len = key_len;
+    bucket->items[bucket->len].val = val;
     bucket->len++;
     return HT_OK;
 }
