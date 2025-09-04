@@ -100,6 +100,39 @@ static size_t next_pow2(size_t n) {
     return p;
 }
 
+static ht_err_t ht_resize(ht_t *ht, size_t new_capacity) {
+    ht_bucket_t *new_buckets = calloc_mem(new_capacity, sizeof(ht_bucket_t));
+    if (!new_buckets)
+        return HT_ENONEM;
+
+    for (size_t i = 0; i < ht->capacity; i++) {
+        ht_bucket_t *old_bucket = &ht->buckets[i];
+        for (size_t j = 0; j < old_bucket->len; j++) {
+            ht_entry_t *entry = &old_bucket->items[j];
+
+            size_t idx = entry->hash & (new_capacity - 1);
+            ht_bucket_t *new_bucket = &new_buckets[idx];
+
+            int err = bucket_reserve(new_bucket, new_bucket->len + 1);
+            if (err != HT_OK) {
+                for (size_t k = 0; k < new_capacity; k++)
+                    free_mem(new_buckets[k].items);
+                free_mem(new_buckets);
+                return err;
+            }
+
+            new_bucket->items[new_bucket->len++] = *entry;
+        }
+        free_mem(old_bucket->items);
+    }
+
+    free_mem(ht->buckets);
+    ht->buckets = new_buckets;
+    ht->capacity = new_capacity;
+
+    return HT_OK;
+}
+
 ht_t *ht_create(const ht_config_t *config) {
     if (!config)
         return NULL;
@@ -145,4 +178,75 @@ void ht_destroy(ht_t *ht) {
 
     free_mem(ht->buckets);
     free_mem(ht);
+}
+
+ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, void *val) {
+    if (!ht || !key)
+        return HT_ERR;
+
+    if (ht->size + 1 > (size_t) (ht->capacity * ht->config.load_factor)) {
+        ht_err_t err = ht_resize(ht, ht->capacity * 2);
+        if (err != HT_OK)
+            return err;
+    }
+
+    unsigned int hash = ht->config.hash(key, key_len, ht->config.seed);
+    size_t idx = hash & (ht->capacity - 1);
+    ht_bucket_t *bucket = &ht->buckets[idx];
+
+    void *dup_key = ht->config.dup_key ? ht->config.dup_key(key, key_len) : (void *) key;
+    void *dup_val = ht->config.dup_val ? ht->config.dup_val(val) : (void *) val;
+
+    size_t prev_bucket_size = bucket->len;
+
+    int err = bucket_insert(bucket, hash, dup_key, key_len, dup_val, &ht->config);
+    if (err == HT_OK && bucket->len > prev_bucket_size)
+        ht->size++;
+
+    return err;
+}
+
+ht_err_t ht_get(ht_t *ht, const void *key, size_t key_len, void **out_val) {
+    if (!ht || !key || !out_val)
+        return HT_ERR;
+
+    unsigned int hash = ht->config.hash(key, key_len, ht->config.seed);
+    size_t idx = hash & (ht->capacity - 1);
+    ht_bucket_t *bucket = &ht->buckets[idx];
+
+    size_t i = bucket_find(bucket, hash, key, key_len, &ht->config);
+    if (i < 0)
+        return HT_ENOTFOUND;
+
+    *out_val = bucket->items[i].val;
+    return HT_OK;
+}
+
+ht_err_t ht_delete(ht_t *ht, const void *key, size_t key_len) {
+    if (!ht || !key)
+        return HT_ERR;
+
+    unsigned int hash = ht->config.hash(key, key_len, ht->config.seed);
+    size_t idx = hash & (ht->capacity - 1);
+    ht_bucket_t *bucket = &ht->buckets[idx];
+
+    void *dup_key = ht->config.dup_key ? ht->config.dup_key(key, key_len) : (void *) key;
+
+    int err = bucket_delete(bucket, hash, dup_key, key_len, &ht->config);
+    if (err != HT_OK)
+        return err;
+
+    ht->size--;
+    return err;
+}
+
+ht_err_t ht_has(ht_t *ht, const void *key, size_t key_len) {
+    if (!ht || !key)
+        return HT_ERR;
+
+    unsigned int hash = ht->config.hash(key, key_len, ht->config.seed);
+    size_t idx = hash & (ht->capacity - 1);
+    ht_bucket_t *bucket = &ht->buckets[idx];
+
+    return bucket_find(bucket, hash, key, key_len, &ht->config);
 }
