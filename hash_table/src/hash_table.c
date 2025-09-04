@@ -152,7 +152,7 @@ ht_t *ht_create(const ht_config_t *config) {
     ht->size = 0;
 
     ht->buckets = calloc_mem(ht->capacity, sizeof(ht_bucket_t));
-    if (ht->buckets) {
+    if (!ht->buckets) {
         free(ht);
         return NULL;
     }
