@@ -20,7 +20,7 @@ typedef struct {
     void *(*dup_val)(const void *val);
     void *(*free_val)(void *val);
 
-    void *(*dup_key)(const void *val);
+    void *(*dup_key)(const void *key, size_t len);
     void *(*free_key)(void *key);
 
     unsigned int seed;
@@ -37,7 +37,7 @@ ht_t *ht_create(const ht_config_t *cfg);
 
 void ht_destroy(ht_t *ht);
 
-ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, const void *val);
+ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, void *val);
 
 ht_err_t ht_get(ht_t *ht, const void *key, size_t key_len, void **out_val);
 
