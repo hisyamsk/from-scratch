@@ -43,7 +43,7 @@ ht_err_t ht_get(ht_t *ht, const void *key, size_t key_len, void **out_val);
 
 ht_err_t ht_delete(ht_t *ht, const void *key, size_t key_len);
 
-int ht_has(ht_t *ht, const void *key, size_t key_len);
+ht_err_t ht_has(ht_t *ht, const void *key, size_t key_len);
 
 size_t ht_size(const ht_t *ht);
 

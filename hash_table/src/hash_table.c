@@ -250,3 +250,25 @@ ht_err_t ht_has(ht_t *ht, const void *key, size_t key_len) {
 
     return bucket_find(bucket, hash, key, key_len, &ht->config);
 }
+
+void ht_clear(ht_t *ht) {
+    if (!ht)
+        return;
+
+    for (size_t i = 0; i < ht->capacity; i++) {
+        ht_bucket_t *bucket = &ht->buckets[i];
+        for (size_t j = 0; j < bucket->size; j++) {
+            ht_entry_t *entry = &bucket->entries[j];
+            int err = bucket_delete(bucket, entry->hash, entry->key, entry->key_len, &ht->config);
+            if (err != HT_OK)
+                return;
+        }
+
+        free_mem(bucket->entries);
+        bucket->entries = NULL;
+        bucket->size = 0;
+        bucket->capacity = 0;
+    }
+
+    ht->size = 0;
+}
