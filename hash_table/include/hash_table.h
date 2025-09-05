@@ -29,8 +29,9 @@ typedef struct {
 } ht_config_t;
 
 typedef struct {
-    size_t bucket;
-    size_t index;
+    ht_t *ht;
+    size_t bucket_idx;
+    size_t entry_idx;
 } ht_iter_t;
 
 ht_t *ht_create(const ht_config_t *cfg);
@@ -47,11 +48,9 @@ ht_err_t ht_has(ht_t *ht, const void *key, size_t key_len);
 
 size_t ht_size(const ht_t *ht);
 
-ht_err_t ht_reserve(ht_t *ht, size_t n);
-
 void ht_clear(ht_t *ht);
 
-ht_iter_t ht_iter_begin(void);
-int ht_iter_next(ht_t *ht, ht_iter_t *it, const void **key, size_t *key_len, void **val);
+ht_iter_t ht_iter_begin(ht_t *ht);
+int ht_iter_next(ht_iter_t *hi, void **key, size_t *key_len, void **val);
 
 #endif
