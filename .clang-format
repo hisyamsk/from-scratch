@@ -20,7 +20,7 @@ ColumnLimit: 100
 AlignAfterOpenBracket: Align
 AllowShortBlocksOnASingleLine: false
 AllowShortFunctionsOnASingleLine: InlineOnly
-AllowShortIfStatementsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: true
 
 # Sorting and includes
 SortIncludes: true
