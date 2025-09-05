@@ -12,8 +12,8 @@ typedef struct {
 } ht_entry_t;
 
 typedef struct {
-    ht_entry_t *items;
-    size_t len;
+    ht_entry_t *entries;
+    size_t size;
     size_t capacity;
 } ht_bucket_t;
 
@@ -32,20 +32,20 @@ static int bucket_reserve(ht_bucket_t *bucket, size_t new_capacity) {
     while (capacity < new_capacity)
         capacity *= 2;
 
-    ht_entry_t *new_items = realloc_mem(bucket->items, capacity * sizeof(ht_entry_t));
-    if (!new_items)
+    ht_entry_t *new_entries = realloc_mem(bucket->entries, capacity * sizeof(ht_entry_t));
+    if (!new_entries)
         return HT_ENONEM;
 
-    bucket->items = new_items;
+    bucket->entries = new_entries;
     bucket->capacity = capacity;
     return HT_OK;
 }
 
 static int bucket_find(const ht_bucket_t *bucket, unsigned hash, const void *key, size_t key_len,
                        const ht_config_t *config) {
-    for (size_t i = 0; i < bucket->len; i++) {
-        if (bucket->items[i].hash == hash &&
-            config->equals(bucket->items[i].key, bucket->items[i].key_len, key, key_len)) {
+    for (size_t i = 0; i < bucket->size; i++) {
+        if (bucket->entries[i].hash == hash &&
+            config->equals(bucket->entries[i].key, bucket->entries[i].key_len, key, key_len)) {
             return (int) i;
         }
     }
@@ -57,20 +57,20 @@ static int bucket_insert(ht_bucket_t *bucket, unsigned hash, void *key, size_t k
     int idx = bucket_find(bucket, hash, key, key_len, config);
     if (idx >= 0) {
         if (config->free_val)
-            config->free_val(bucket->items[idx].val);
-        bucket->items[idx].val = val;
+            config->free_val(bucket->entries[idx].val);
+        bucket->entries[idx].val = val;
         return HT_OK;
     }
 
-    int err = bucket_reserve(bucket, bucket->len + 1);
+    int err = bucket_reserve(bucket, bucket->size + 1);
     if (err != HT_OK)
         return err;
 
-    bucket->items[bucket->len].hash = hash;
-    bucket->items[bucket->len].key = key;
-    bucket->items[bucket->len].key_len = key_len;
-    bucket->items[bucket->len].val = val;
-    bucket->len++;
+    bucket->entries[bucket->size].hash = hash;
+    bucket->entries[bucket->size].key = key;
+    bucket->entries[bucket->size].key_len = key_len;
+    bucket->entries[bucket->size].val = val;
+    bucket->size++;
     return HT_OK;
 }
 
@@ -81,12 +81,12 @@ static int bucket_delete(ht_bucket_t *bucket, unsigned hash, void *key, size_t k
         return HT_ENOTFOUND;
 
     if (config->free_key)
-        config->free_val(bucket->items[idx].key);
+        config->free_val(bucket->entries[idx].key);
     if (config->free_val)
-        config->free_val(bucket->items[idx].val);
+        config->free_val(bucket->entries[idx].val);
 
-    bucket->items[idx] = bucket->items[bucket->len - 1];
-    bucket->len--;
+    bucket->entries[idx] = bucket->entries[bucket->size - 1];
+    bucket->size--;
     return HT_OK;
 }
 
@@ -107,23 +107,23 @@ static ht_err_t ht_resize(ht_t *ht, size_t new_capacity) {
 
     for (size_t i = 0; i < ht->capacity; i++) {
         ht_bucket_t *old_bucket = &ht->buckets[i];
-        for (size_t j = 0; j < old_bucket->len; j++) {
-            ht_entry_t *entry = &old_bucket->items[j];
+        for (size_t j = 0; j < old_bucket->size; j++) {
+            ht_entry_t *entry = &old_bucket->entries[j];
 
             size_t idx = entry->hash & (new_capacity - 1);
             ht_bucket_t *new_bucket = &new_buckets[idx];
 
-            int err = bucket_reserve(new_bucket, new_bucket->len + 1);
+            int err = bucket_reserve(new_bucket, new_bucket->size + 1);
             if (err != HT_OK) {
                 for (size_t k = 0; k < new_capacity; k++)
-                    free_mem(new_buckets[k].items);
+                    free_mem(new_buckets[k].entries);
                 free_mem(new_buckets);
                 return err;
             }
 
-            new_bucket->items[new_bucket->len++] = *entry;
+            new_bucket->entries[new_bucket->size++] = *entry;
         }
-        free_mem(old_bucket->items);
+        free_mem(old_bucket->entries);
     }
 
     free_mem(ht->buckets);
@@ -167,13 +167,13 @@ void ht_destroy(ht_t *ht) {
     for (size_t i = 0; i < ht->capacity; i++) {
         ht_bucket_t *bucket = &ht->buckets[i];
         for (size_t j = 0; j < bucket->capacity; j++) {
-            ht_entry_t *item = &bucket->items[j];
-            if (ht->config.free_key && item->key)
-                ht->config.free_key(item->key);
-            if (ht->config.free_val && item->val)
-                ht->config.free_val(item->val);
+            ht_entry_t *entry = &bucket->entries[j];
+            if (ht->config.free_key && entry->key)
+                ht->config.free_key(entry->key);
+            if (ht->config.free_val && entry->val)
+                ht->config.free_val(entry->val);
         }
-        free_mem(bucket->items);
+        free_mem(bucket->entries);
     }
 
     free_mem(ht->buckets);
@@ -197,10 +197,10 @@ ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, void *val) {
     void *dup_key = ht->config.dup_key ? ht->config.dup_key(key, key_len) : (void *) key;
     void *dup_val = ht->config.dup_val ? ht->config.dup_val(val) : (void *) val;
 
-    size_t prev_bucket_size = bucket->len;
+    size_t prev_bucket_size = bucket->size;
 
     int err = bucket_insert(bucket, hash, dup_key, key_len, dup_val, &ht->config);
-    if (err == HT_OK && bucket->len > prev_bucket_size)
+    if (err == HT_OK && bucket->size > prev_bucket_size)
         ht->size++;
 
     return err;
@@ -218,7 +218,7 @@ ht_err_t ht_get(ht_t *ht, const void *key, size_t key_len, void **out_val) {
     if (i < 0)
         return HT_ENOTFOUND;
 
-    *out_val = bucket->items[i].val;
+    *out_val = bucket->entries[i].val;
     return HT_OK;
 }
 
