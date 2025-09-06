@@ -19,10 +19,10 @@ typedef struct {
     int (*equals)(const void *a, size_t alen, const void *b, size_t blen);
 
     void *(*dup_val)(const void *val, size_t len);
-    void *(*free_val)(void *val);
+    void (*free_val)(void *val);
 
     void *(*dup_key)(const void *key, size_t len);
-    void *(*free_key)(void *key);
+    void (*free_key)(void *key);
 
     unsigned int seed;
     double load_factor;

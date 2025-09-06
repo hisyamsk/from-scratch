@@ -76,7 +76,7 @@ static int bucket_delete(ht_bucket_t *bucket, unsigned hash, void *key, size_t k
     int idx = bucket_find(bucket, hash, key, key_len, config);
     if (idx < 0) return HT_ENOTFOUND;
 
-    if (config->free_key) config->free_val(bucket->entries[idx].key);
+    if (config->free_key) config->free_key(bucket->entries[idx].key);
     if (config->free_val) config->free_val(bucket->entries[idx].val);
 
     bucket->entries[idx] = bucket->entries[bucket->size - 1];
