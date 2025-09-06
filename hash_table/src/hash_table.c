@@ -9,6 +9,7 @@ typedef struct {
     void *key;
     size_t key_len;
     void *val;
+    size_t val_len;
 } ht_entry_t;
 
 typedef struct {
@@ -165,7 +166,7 @@ void ht_destroy(ht_t *ht) {
     free_mem(ht);
 }
 
-ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, void *val) {
+ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, const void *val, size_t val_len) {
     if (!ht || !key) return HT_ERR;
 
     if (ht->size + 1 > (size_t) (ht->capacity * ht->config.load_factor)) {
@@ -178,7 +179,7 @@ ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, void *val) {
     ht_bucket_t *bucket = &ht->buckets[idx];
 
     void *dup_key = ht->config.dup_key ? ht->config.dup_key(key, key_len) : (void *) key;
-    void *dup_val = ht->config.dup_val ? ht->config.dup_val(val) : (void *) val;
+    void *dup_val = ht->config.dup_val ? ht->config.dup_val(val, val_len) : (void *) val;
 
     size_t prev_bucket_size = bucket->size;
 
@@ -195,7 +196,7 @@ ht_err_t ht_get(ht_t *ht, const void *key, size_t key_len, void **out_val) {
     size_t idx = hash & (ht->capacity - 1);
     ht_bucket_t *bucket = &ht->buckets[idx];
 
-    size_t i = bucket_find(bucket, hash, key, key_len, &ht->config);
+    int i = bucket_find(bucket, hash, key, key_len, &ht->config);
     if (i < 0) return HT_ENOTFOUND;
 
     *out_val = bucket->entries[i].val;

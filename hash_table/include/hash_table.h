@@ -2,6 +2,7 @@
 #define HASH_TABLE_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 typedef enum {
     HT_OK = 0,
@@ -17,7 +18,7 @@ typedef struct {
     unsigned int (*hash)(const void *key, size_t len, unsigned int seed);
     int (*equals)(const void *a, size_t alen, const void *b, size_t blen);
 
-    void *(*dup_val)(const void *val);
+    void *(*dup_val)(const void *val, size_t len);
     void *(*free_val)(void *val);
 
     void *(*dup_key)(const void *key, size_t len);
@@ -38,7 +39,7 @@ ht_t *ht_create(const ht_config_t *cfg);
 
 void ht_destroy(ht_t *ht);
 
-ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, void *val);
+ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, const void *val, size_t val_len);
 
 ht_err_t ht_get(ht_t *ht, const void *key, size_t key_len, void **out_val);
 
