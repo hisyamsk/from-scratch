@@ -232,7 +232,9 @@ ht_err_t ht_has(ht_t *ht, const void *key, size_t key_len) {
     size_t idx = hash & (ht->capacity - 1);
     ht_bucket_t *bucket = &ht->buckets[idx];
 
-    return bucket_find(bucket, hash, key, key_len, &ht->config);
+    int i = bucket_find(bucket, hash, key, key_len, &ht->config);
+    if (i < 0) return HT_ENOTFOUND;
+    return HT_OK;
 }
 
 size_t ht_size(const ht_t *ht) {
