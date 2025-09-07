@@ -5,7 +5,7 @@
 #include <string.h>
 
 typedef struct {
-    unsigned int hash;
+    uint64_t hash;
     void *key;
     size_t key_len;
     void *val;
@@ -52,7 +52,7 @@ static int bucket_find(const ht_bucket_t *bucket, unsigned hash, const void *key
 }
 
 static int bucket_insert(ht_bucket_t *bucket, unsigned hash, void *key, size_t key_len, void *val,
-                         const ht_config_t *config) {
+                         size_t val_len, const ht_config_t *config) {
     int idx = bucket_find(bucket, hash, key, key_len, config);
     if (idx >= 0) {
         if (config->free_val) config->free_val(bucket->entries[idx].val);
@@ -67,6 +67,7 @@ static int bucket_insert(ht_bucket_t *bucket, unsigned hash, void *key, size_t k
     bucket->entries[bucket->size].key = key;
     bucket->entries[bucket->size].key_len = key_len;
     bucket->entries[bucket->size].val = val;
+    bucket->entries[bucket->size].val_len = val_len;
     bucket->size++;
     return HT_OK;
 }
@@ -133,9 +134,13 @@ ht_t *ht_create(const ht_config_t *config) {
     if (!ht) return NULL;
 
     ht->config = *config;
-    if (ht->config.initial_capacity == 0) ht->config.initial_capacity = DEFAULT_INITIAL_CAPACITY;
+    if (ht->config.initial_capacity == 0) {
+        ht->config.initial_capacity = DEFAULT_INITIAL_CAPACITY;
+    }
 
-    if (ht->config.load_factor <= 0.0) ht->config.load_factor = DEFAULT_LOAD_FACTOR;
+    if (ht->config.load_factor <= 0.0) {
+        ht->config.load_factor = DEFAULT_LOAD_FACTOR;
+    }
 
     ht->capacity = next_pow2(ht->config.initial_capacity);
     ht->size = 0;
@@ -174,7 +179,7 @@ ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, const void *val, size
         if (err != HT_OK) return err;
     }
 
-    unsigned int hash = ht->config.hash(key, key_len, ht->config.seed);
+    uint64_t hash = ht->config.hash(key, key_len, ht->config.seed);
     size_t idx = hash & (ht->capacity - 1);
     ht_bucket_t *bucket = &ht->buckets[idx];
 
@@ -183,7 +188,7 @@ ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, const void *val, size
 
     size_t prev_bucket_size = bucket->size;
 
-    int err = bucket_insert(bucket, hash, dup_key, key_len, dup_val, &ht->config);
+    int err = bucket_insert(bucket, hash, dup_key, key_len, dup_val, val_len, &ht->config);
     if (err == HT_OK && bucket->size > prev_bucket_size) ht->size++;
 
     return err;
@@ -192,7 +197,7 @@ ht_err_t ht_set(ht_t *ht, const void *key, size_t key_len, const void *val, size
 ht_err_t ht_get(ht_t *ht, const void *key, size_t key_len, void **out_val) {
     if (!ht || !key || !out_val) return HT_ERR;
 
-    unsigned int hash = ht->config.hash(key, key_len, ht->config.seed);
+    uint64_t hash = ht->config.hash(key, key_len, ht->config.seed);
     size_t idx = hash & (ht->capacity - 1);
     ht_bucket_t *bucket = &ht->buckets[idx];
 
@@ -206,7 +211,7 @@ ht_err_t ht_get(ht_t *ht, const void *key, size_t key_len, void **out_val) {
 ht_err_t ht_delete(ht_t *ht, const void *key, size_t key_len) {
     if (!ht || !key) return HT_ERR;
 
-    unsigned int hash = ht->config.hash(key, key_len, ht->config.seed);
+    uint64_t hash = ht->config.hash(key, key_len, ht->config.seed);
     size_t idx = hash & (ht->capacity - 1);
     ht_bucket_t *bucket = &ht->buckets[idx];
 
@@ -222,7 +227,7 @@ ht_err_t ht_delete(ht_t *ht, const void *key, size_t key_len) {
 ht_err_t ht_has(ht_t *ht, const void *key, size_t key_len) {
     if (!ht || !key) return HT_ERR;
 
-    unsigned int hash = ht->config.hash(key, key_len, ht->config.seed);
+    uint64_t hash = ht->config.hash(key, key_len, ht->config.seed);
     size_t idx = hash & (ht->capacity - 1);
     ht_bucket_t *bucket = &ht->buckets[idx];
 

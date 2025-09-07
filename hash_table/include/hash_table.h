@@ -15,7 +15,7 @@ typedef enum {
 typedef struct ht ht_t;
 
 typedef struct {
-    unsigned int (*hash)(const void *key, size_t len, unsigned int seed);
+    uint64_t (*hash)(const void *key, size_t len, uint64_t seed);
     int (*equals)(const void *a, size_t alen, const void *b, size_t blen);
 
     void *(*dup_val)(const void *val, size_t len);
@@ -24,7 +24,7 @@ typedef struct {
     void *(*dup_key)(const void *key, size_t len);
     void (*free_key)(void *key);
 
-    unsigned int seed;
+    uint64_t seed;
     double load_factor;
     size_t initial_capacity;
 } ht_config_t;
