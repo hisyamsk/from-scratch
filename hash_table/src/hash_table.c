@@ -1,6 +1,7 @@
 #include "hash_table.h"
 #include "allocator.h"
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -147,7 +148,7 @@ ht_t *ht_create(const ht_config_t *config) {
 
     ht->buckets = calloc_mem(ht->capacity, sizeof(ht_bucket_t));
     if (!ht->buckets) {
-        free(ht);
+        free_mem(ht);
         return NULL;
     }
 
@@ -159,7 +160,7 @@ void ht_destroy(ht_t *ht) {
 
     for (size_t i = 0; i < ht->capacity; i++) {
         ht_bucket_t *bucket = &ht->buckets[i];
-        for (size_t j = 0; j < bucket->capacity; j++) {
+        for (size_t j = 0; j < bucket->size; j++) {
             ht_entry_t *entry = &bucket->entries[j];
             if (ht->config.free_key && entry->key) ht->config.free_key(entry->key);
             if (ht->config.free_val && entry->val) ht->config.free_val(entry->val);
