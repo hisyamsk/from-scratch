@@ -242,6 +242,11 @@ size_t ht_size(const ht_t *ht) {
     return ht->size;
 }
 
+size_t ht_capacity(const ht_t *ht) {
+    if (!ht) return 0;
+    return ht->capacity;
+}
+
 void ht_clear(ht_t *ht) {
     if (!ht) return;
 

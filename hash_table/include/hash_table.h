@@ -48,6 +48,7 @@ ht_err_t ht_delete(ht_t *ht, const void *key, size_t key_len);
 ht_err_t ht_has(ht_t *ht, const void *key, size_t key_len);
 
 size_t ht_size(const ht_t *ht);
+size_t ht_capacity(const ht_t *ht);
 
 void ht_clear(ht_t *ht);
 
